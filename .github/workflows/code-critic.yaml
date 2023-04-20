@@ -1,0 +1,32 @@
+name: Code Critic
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  analyze-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get git diff
+        id: git-diff
+        run: |
+          diff=$(git diff HEAD^ HEAD --name-only)
+          echo "::set-output name=diff::$diff"
+
+      - name: Analyze code
+        id: code-analysis
+        run: |
+          curl --header "Content-Type: application/json" \
+               --request POST \
+               --data "{\"code\": \"$(cat ${{ github.workspace }}/${{ steps.git-diff.outputs.diff }})\"}" \
+               https://tuneer.cis188.org/analyze > results.sarif
+          echo "::set-output name=sarif::results.sarif"
+
+      - name: Upload results
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: ${{ steps.code-analysis.outputs.sarif }}
