@@ -6,27 +6,36 @@ on:
 
 jobs:
   analyze-code:
+    name: Test action
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
-      - name: Get git diff
-        id: git-diff
+      - name: Get Git changes
         run: |
-          diff=$(git diff HEAD^ HEAD --name-only)
-          echo "::set-output name=diff::$diff"
+          git fetch origin ${{ github.ref }}
+          git diff --name-only --diff-filter=AM HEAD~1 HEAD > changes.txt
+      
+      - name: Print changes per file
+        run: |
+          package="{"
+          while read -r file; do
+            if [[ $(git diff HEAD $file | wc -l) -le 205 ]]; then
+              code=$(git diff HEAD~1 HEAD $file | tail -n +5 | sed 's/^+//')
+              package="$package\"$file\":\"$code\","
+              echo "Changes in $file complete."
+            else
+              echo "Changes in $file too large (limited to 200 lines)."
+            fi
+          done < changes.txt
+          package="${package,*}}"
 
-      - name: Analyze code
-        id: code-analysis
-        run: |
-          curl --header "Content-Type: application/json" \
-               --request POST \
-               --data "{\"code\": \"$(cat ${{ github.workspace }}/${{ steps.git-diff.outputs.diff }})\"}" \
-               https://tuneer.cis188.org/analyze > results.sarif
-          echo "::set-output name=sarif::results.sarif"
+          curl -X POST -H "Content-Type: application/json" -d "${package}" https://tuneer.cis188.org/analyze --output results.sarif
 
       - name: Upload results
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: ${{ steps.code-analysis.outputs.sarif }}
+          sarif_file: results.sarif
