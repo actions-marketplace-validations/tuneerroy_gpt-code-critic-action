@@ -18,20 +18,27 @@ jobs:
         run: |
           git fetch origin ${{ github.ref }}
           git diff --name-only --diff-filter=AM HEAD~1 HEAD > changes.txt
-      
-      - name: Print changes per file
+
+      - name: Check if any changes
         run: |
-          package="{"
+          if ! [[ -s changes.txt ]]; then
+            echo "No changes found."
+            exit 0
+          fi
+
+      - name: Send changes to GPT Code Critic
+        run: |
+          package="{\"key\":\"${{ secrets.GPT_KEY }}\",\"files\":["
           while read -r file; do
             if [[ $(git diff HEAD $file | wc -l) -le 205 ]]; then
               code=$(git diff HEAD~1 HEAD $file | tail -n +5 | sed 's/^+//')
-              package="$package\"$file\":\"$code\","
+              package="$package{\"filename\": \"$file\", \"code\": \"$code\"},"
               echo "Changes in $file complete."
             else
               echo "Changes in $file too large (limited to 200 lines)."
             fi
           done < changes.txt
-          package="${package,*}}"
+          package="${package,*}]}"
 
           curl -X POST -H "Content-Type: application/json" -d "${package}" https://tuneer.cis188.org/analyze --output results.sarif
 
