@@ -1,4 +1,4 @@
-name: Code Critic
+name: GPT Code Critic
 
 on:
   push:
