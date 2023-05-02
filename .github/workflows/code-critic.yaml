@@ -28,32 +28,22 @@ jobs:
 
       - name: Send changes to GPT Code Critic
         run: |
-          package = {
-            "key": inputs.OPENAI_API_KEY,
-            "files": []
-          }
+          package="{\"key\":\"${{ secrets.OPENAI_API_KEY }}\",\"files\":["
 
           while read -r file; do
             if [[ $(git diff HEAD $file | wc -l) -le 205 ]]; then
               code=$(git diff HEAD~1 HEAD $file | tail -n +5 | sed 's/^+//')
-              package["files"].append({
-                "name": file,
-                "code": code
-              })
+              package="$package{\"name\":\"$file\",\"code\":\"$code\"},"
               echo "Changes in $file complete."
             else
               echo "Changes in $file too large (limited to 200 lines)."
             fi
           done < changes.txt
 
-          payload=$(echo "$package" | tr -d '\n' | sed 's/"/\\"/g' | sed 's/\[{/\[\n{/g' | sed 's/}]/}\n]/g')
+          package="${package%,}]}"
+          echo "Package: $package"
 
-          response=$(curl -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "${payload}" https://tuneer.cis188.org/analyze -o result.json)
-
-          if [ "$response" != "200" ]; then
-            echo "Error: curl request returned HTTP status code $response"
-            exit 1
-          fi
+          curl -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "${package}" https://tuneer.cis188.org/analyze -o result.json
 
       - name: Upload results
         uses: github/codeql-action/upload-sarif@v2
