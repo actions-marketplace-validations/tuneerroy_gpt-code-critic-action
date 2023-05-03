@@ -19,18 +19,18 @@ runs:
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r ${{ github.action_path }}/requirements.txt
 
     - name: Run GPT Code Critic
       shell: bash
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
-      run: python3 main.py
+      run: python3 ${{ github.action_path }}/main.py
 
     - name: Check if results.sarif exists
       shell: bash
       run: |
-        if [ ! -f results.sarif ]; then
+        if [ ! -f ${{ github.action_path }}/results.sarif ]; then
           echo "::error::results.sarif not found"
           exit 1
         fi
@@ -38,11 +38,11 @@ runs:
     - name: Print results
       shell: bash
       run: |
-        cat results.sarif
+        cat ${{ github.action_path }}/results.sarif
 
     - name: Upload results
       uses: github/codeql-action/upload-sarif@v2
       with:
-        sarif_file: results.sarif
+        sarif_file: ${{ github.action_path }}/results.sarif
       env:
         GITHUB_TOKEN: ${{ github.token }}
