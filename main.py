@@ -38,7 +38,8 @@ package = {
 }
 
 # make a POST request 
-response = requests.post('https://tuneer.cis188.org/analyze', json=package)
+# response = requests.post('https://tuneer.cis188.org/analyze', json=package)
+response = {'analysis': {}}
 
 if response.ok:
     analysis = response.json().get('analysis')
