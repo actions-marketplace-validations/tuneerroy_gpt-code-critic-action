@@ -14,20 +14,26 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Get Git changes
+      - name: Install dependencies
         run: |
-          git fetch origin ${{ github.ref }}
-          git diff --name-only --diff-filter=AM HEAD~1 HEAD > changes.txt
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Check if any changes
+      - name: Run GPT Code Critic
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python3 main.py
+
+      - name: Check if results.sarif exists
         run: |
-          if ! [[ -s changes.txt ]]; then
-            echo "No changes found."
-            exit 0
+          if [ ! -f results.sarif ]; then
+            echo "::error::results.sarif not found"
+            exit 1
           fi
 
-      - name: Send changes to GPT Code Critic
+      - name: Print results
         run: |
+<<<<<<< Updated upstream
           package="{\"key\":\"${{ secrets.OPENAI_API_KEY }}\",\"files\":["
 
           while read -r file; do
@@ -45,10 +51,16 @@ jobs:
 
           curl -w "%{http_code}" -X POST -H "Content-Type: application/json" -d "${package}" https://tuneer.cis188.org/analyze -o results.json
           cat results.json | jq -r '.[] | @sh "##vso[results.publish type=Sarif;]$(jq -r tostring {})"' > results.sarif
+=======
+          cat results.sarif
+>>>>>>> Stashed changes
 
       - name: Upload results
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: results.sarif
+<<<<<<< Updated upstream
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+=======
+>>>>>>> Stashed changes
