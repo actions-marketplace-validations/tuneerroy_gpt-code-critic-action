@@ -1,5 +1,8 @@
 name: GPT Code Critic
 description: "Run GPT Code Critic to analyze code changes!"
+branding:
+  icon: 'aperture'
+  color: 'gray-dark'
 inputs:
   openai_api_key:
     description: "API key for OpenAI GPT"
