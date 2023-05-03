@@ -18,7 +18,10 @@ runs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.10' 
-    - run: python main.py
+    - shell: bash
+      run: |
+        pip install -r ${{ github.action_path }}/requirements.txt
+        python main.py
 
     # - name: Run GPT Code Critic
     #   shell: bash
