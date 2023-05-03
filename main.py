@@ -1,5 +1,6 @@
 import os
 import requests
+import json
 
 # get the open API key
 openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -39,8 +40,11 @@ package = {
 # make a POST request 
 response = requests.post('https://tuneer.cis188.org/analyze', json=package)
 
-# write the results to a file called "results.sarif"
-with open('results.sarif', 'w') as f:
-    f.write(response.text)
-
-print('Analysis complete. Results written to "results.sarif"')
+if response.ok:
+    analysis = response.json().get('analysis')
+    # write the results to a file called "results.sarif"
+    with open('results.sarif', 'w') as f:
+        f.write(json.dumps(analysis))
+    print('Analysis complete. Results written to "results.sarif"')
+else:
+    print(f'Error {response.status_code}: {response.reason}')
