@@ -21,7 +21,7 @@ runs:
     - shell: bash
       run: |
         pip install -r ${{ github.action_path }}/requirements.txt
-        python main.py
+        python ${{ github.action_path }}/main.py
 
     # - name: Run GPT Code Critic
     #   shell: bash
