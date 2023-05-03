@@ -14,18 +14,18 @@ runs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 2
+    
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10' 
+    - run: python main.py
 
-    - name: Install dependencies
-      shell: bash
-      run: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r ${{ github.action_path }}/requirements.txt
-
-    - name: Run GPT Code Critic
-      shell: bash
-      env:
-        OPENAI_API_KEY: ${{ inputs.openai_api_key }}
-      run: python3 ${{ github.action_path }}/main.py
+    # - name: Run GPT Code Critic
+    #   shell: bash
+    #   env:
+    #     OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+    #   run: |
+    #     docker run --rm -v ${{ github.workspace }}:${{ github.workspace }} -e OPENAI_API_KEY=$OPENAI_API_KEY openai/gpt-code-critic:latest python3 /${{ github.action_path }}/main.py
 
     - name: Check if results.sarif exists
       shell: bash

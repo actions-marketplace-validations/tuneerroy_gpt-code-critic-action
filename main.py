@@ -38,17 +38,13 @@ package = {
 }
 
 # make a POST request 
-# response = requests.post('https://tuneer.cis188.org/analyze', json=package)
-analysis = {}
-# write the results to a file called "results.sarif"
-with open('results.sarif', 'w') as f:
-    f.write(json.dumps(analysis))
+response = requests.post('https://tuneer.cis188.org/analyze', json=package)
 
-# if response.ok:
-#     analysis = response.json().get('analysis')
-#     # write the results to a file called "results.sarif"
-#     with open('results.sarif', 'w') as f:
-#         f.write(json.dumps(analysis))
-#     print('Analysis complete. Results written to "results.sarif"')
-# else:
-#     print(f'Error {response.status_code}: {response.reason}')
+if response.ok:
+    analysis = response.json().get('analysis')
+    # write the results to a file called "results.sarif"
+    with open('results.sarif', 'w') as f:
+        f.write(json.dumps(analysis))
+    print('Analysis complete. Results written to "results.sarif"')
+else:
+    print(f'Error {response.status_code}: {response.reason}')
