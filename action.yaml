@@ -1,7 +1,41 @@
-name: GPT Code Critic Analyzer
-description: An action that analyzes code changes with GPT Code Critic and uploads the results
+name: GPT Code Critic
+description: "Run GPT Code Critic to analyze code changes!"
 inputs:
-  OPENAI_API_KEY:
-    description: "The API key for OpenAI ChatGPT"
+  openai_api_key:
+    description: "API key for OpenAI GPT"
     required: true
-    default: ${{ secrets.OPENAI_API_KEY }}
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run GPT Code Critic
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+      run: python3 main.py
+
+    - name: Check if results.sarif exists
+      run: |
+        if [ ! -f results.sarif ]; then
+          echo "::error::results.sarif not found"
+          exit 1
+        fi
+
+    - name: Print results
+      run: |
+        cat results.sarif
+
+    - name: Upload results
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: results.sarif
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
