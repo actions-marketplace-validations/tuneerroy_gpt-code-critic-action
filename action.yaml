@@ -13,16 +13,19 @@ runs:
         fetch-depth: 2
 
     - name: Install dependencies
+      shell: bash
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
     - name: Run GPT Code Critic
+      shell: bash
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
       run: python3 main.py
 
     - name: Check if results.sarif exists
+      shell: bash
       run: |
         if [ ! -f results.sarif ]; then
           echo "::error::results.sarif not found"
@@ -30,6 +33,7 @@ runs:
         fi
 
     - name: Print results
+      shell: bash
       run: |
         cat results.sarif
 
@@ -38,4 +42,4 @@ runs:
       with:
         sarif_file: results.sarif
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ github.token }}
