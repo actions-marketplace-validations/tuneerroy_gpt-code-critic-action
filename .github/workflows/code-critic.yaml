@@ -22,7 +22,7 @@ jobs:
 
       - name: Run GPT Code Critic
         env:
-          OPENAI_API_KEY: ${{ inputs.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ env.INPUT_OPENAI_API_KEY }}
         run: python3 main.py
 
       - name: Check if results.sarif exists
